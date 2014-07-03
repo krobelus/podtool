@@ -1,4 +1,4 @@
-#!/usr/bin/python2.4
+#!/usr/bin/python2
 #
 # Example application for managing an iPod and its tracks.
 # Main feature revolves around synchronisation between a larger
@@ -15,7 +15,9 @@ import tempfile
 import re
 import sys
 from optparse import OptionParser
-import eyeD3
+import eyed3
+import eyed3.mp3
+import eyed3.id3
 import imghdr
 import shutil
 import time
@@ -64,14 +66,14 @@ def validFiles(files):
 def thumbfile(file):
   global tmpDir
   global dryRun
-  if dryRun or not eyeD3.isMp3File(file):
+  if dryRun or not eyed3.mp3.isMp3File(file):
     return None
   try:
-    audioFile = eyeD3.Mp3AudioFile(file, eyeD3.ID3_ANY_VERSION)
+    audioFile = eyed3.mp3.Mp3AudioFile(file, eyed3.id3.ID3_ANY_VERSION)
   except:
     return None
-  tag = audioFile.getTag()
-  images = tag.getImages()
+  tag = audioFile.tag
+  images = tag.images
   if not tmpDir:
     tmpDir = tempfile.mkdtemp()
   for img in images:
@@ -813,9 +815,9 @@ def Command_Add (arg):
         break
     if skip:
       continue
-    if eyeD3.isMp3File(file): # Open, make sure it's an mp3
-      audioFile = eyeD3.Mp3AudioFile(file, eyeD3.ID3_ANY_VERSION)
-      tag = audioFile.getTag()
+    if eyed3.mp3.isMp3File(file): # Open, make sure it's an mp3
+      audioFile = eyed3.mp3.Mp3AudioFile(file, eyed3.id3.ID3_ANY_VERSION)
+      tag = audioFile.tag
     else:
       Msg("WARN: %s not an mp3, skipping." % file, 2)
       continue
@@ -835,16 +837,15 @@ def Command_Add (arg):
     track.filetype = "mp3"
     track.ipod_path = file
     track.size = filesize
-    br = audioFile.getBitRate()
-    if br[0] > 7:
-      track.bitrate = br[0] # br is (cbr, vbr)
-    else:
-      track.bitrate = br[1] # br is (cbr, vbr)
-    track.tracklen = audioFile.getPlayTime() * 1000
-    track.album = str(tag.getAlbum())
-    track.artist = str(tag.getArtist())
-    track.title = str(tag.getTitle())
-    track.genre = str(tag.getGenre())
+    # br = audioFile.bit_rate_str() #broken
+    # br[0] is true if vbr
+    track.bitrate = 128
+    #track.tracklen = audioFile.getPlayTime() * 1000
+    track.tracklen = 300000
+    track.album = str(tag.album)
+    track.artist = str(tag.artist)
+    track.title = str(tag.title)
+    track.genre = str(tag.genre)
     now = int(time.time()) + 2082844800
     track.time_added = now
     track.rating = int(options.rating) * 20
@@ -928,9 +929,9 @@ def Command_Update (arg):
     else:
       Msg("WARN: %s (%s) not found while updating" % (track.title, track.artist), 1)
     file = str(track.ipod_path)
-    if eyeD3.isMp3File(file): # Open, make sure it's an mp3
-      audioFile = eyeD3.Mp3AudioFile(file, eyeD3.ID3_ANY_VERSION)
-      tag = audioFile.getTag()
+    if eyed3.mp3.isMp3File(file): # Open, make sure it's an mp3
+      audioFile = eyed3.mp3.Mp3AudioFile(file, eyed3.id3.ID3_ANY_VERSION)
+      tag = audioFile.tag
     else:
       Msg("WARN: %s not an mp3, skipping." % file, 2)
       continue
@@ -938,12 +939,10 @@ def Command_Update (arg):
       Msg("WARN: No ID3 tags for %s, skipping" % file, 1)
       continue
     track.size = fileSize(file)
-    br = audioFile.getBitRate()
-    if br[0] > 7:
-      track.bitrate = br[0] # br is (cbr, vbr)
-    else:
-      track.bitrate = br[1] # br is (cbr, vbr)
-    track.tracklen = audioFile.getPlayTime() * 1000
+    # broken
+    track.bitrate = 128
+    #track.tracklen = audioFile.getPlayTime() * 1000
+    track.tracklen = 300000
     print " %-30.30s %-25.25s %5d %d" % (track.title, track.artist, track.size/1024, track.bitrate)
   writeItdb("db")
   sys.exit(0)
