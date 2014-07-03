@@ -1,0 +1,284 @@
+Podtool v1.1
+
+Introduction
+------------
+Podtool is a Python-based utility for managing tracks between a local
+music repository and an iPod. In particular, podtool implements correct
+playcount and ratings synchronisation which is important when using smart
+playlists.
+
+Podtool can also be used without an iPod by using its built in mp3 playing
+features.
+
+Changes since v1.0
+------------------
+- podtool now uses a more sensible hierarchy with the 'dump' command
+- the gtkpod extended info file is now used, improving behaviour with gtkpod
+- various other improvements
+
+Requirements
+------------
+To use Podtool, you need the following:
+
+- This script :)
+- Python
+- Python eye3D module (http://eyed3.nicfit.net/)
+- libgpod + python bindings (http://www.gtkpod.org/libgpod.html)
+  (You might need to use the included version, see below)
+- gtkpod installed (to build smart playlist rules)
+
+Motivation
+----------
+When I bought my iPod Nano, I loved the iTunes smart playlists feature. By
+building playlists based on such things as play count, track rating and
+the time a track was last played, it's possible to end up with fresh music
+each day. An example of this is to have a playlist of highest rated tracks
+that haven't been played in a week. That gives you a great music that
+doesn't repeat more than once a week, then if you change the rating of a
+track whilst on the road, it's reflected in this.
+The other feature is the synchronisation feature. My Nano has a 4Gb capacity,
+whereas my collection is at around 10Gb. Using smart playlists, iTunes
+can keep a fresh supply of tracks loaded on the iPod, rotating them on
+and off the iPod according to the playlist rules. So with the above example,
+tracks that you've played within the last week will automatically be flushed
+from the iPod when you sync, making room for fresher ones.
+
+Under Linux, these features didn't yet exist. There are numerous iPod 
+interfaces, even ones which handle smart playlists, but none would do this
+intelligent smartlist synchronisation between iPod and PC. So I decided
+to do something about it. This is the result.
+
+A note on libgpod python bindings
+---------------------------------
+This tool uses featurs from a recent CVS version of the libgpod python
+bindings. If you're having problems (eg functions not found), then you'll
+need to recompile the python bindings using the gpod.i file included in
+this package. Mostly it's just a matter of replacing the file in the package
+and doing a 'make install'. Check libgpod docs for compiling howto (hint,
+you'll need 'swig')
+
+Basic setup and operation
+-------------------------
+Setting up podtool with your iPod is pretty simple:
+
+- Populate your local music database with tracks
+- Create your smart playlists (*both* on the iPod and local db)
+- Sync!
+
+Depending on what you currently have, follow the steps below:
+
+==> If you've got all your tracks on your ipod only
+
+ - Dump tracks from your iPod:
+   $ podtool dump
+
+ All tracks will end up in the default locations (-h to see defaults)
+
+ - Run gtkpod and create some smart playlists (see below for examples)
+
+ - Create PC->ipod mapping file
+   $ podtool makemap
+
+ - Synchronise!
+   $ podtool sync
+
+==> If all your tracks are on your local PC filesystem, and you have
+    all your tracks loaded into gtkpod
+
+ - Run gtkpod and create some smart playlists (see below for examples)
+
+ - Synchronise!
+   $ podtool sync
+
+==> If all your tracks are on your local PC filesystem, but you haven't
+    got your tracks in gtkpod
+
+ - Populate the local database with your tracks:
+   $ podtool add </path/to/music>
+
+ - Run gtkpod and create some smart playlists (see below for examples)
+
+ - Synchronise!
+   $ podtool sync
+
+Smart playlists
+---------------
+The real feature to this tool is smart playlist synchronisation. Right now,
+this script doesn't allow editing of smart playlists, so you need to do 
+this manually from within gtkpod. This only needs to be done either once 
+or when you decide to edit your playlists. Gtkpod is the tool of choice 
+and it will by default read the same local database used by podtool.
+
+Run Gtkpod and add smart playlists of your choice to *both* the local
+library and your iPod. They must be identical on each.
+
+Save them and you're ready.
+
+You can verify that the smrt playlists are correct with the "playlist
+rules <playlist_name>" command.
+
+Using podtool
+-------------
+Podtool is very easy to use. Once you've got most of your tracks setup,
+you normally only have to run "podtool sync" to refresh your iPod. Older
+tracks will be deleted from the iPod, and newer ones copied over.
+
+A complete list of the commands follows. If a command has [ipod] as
+an optional prefix, it runs the command on the iPod's database (see
+command details for any applicable differences)
+
+sync [meta]
+
+  Sync the iPod with the local database. If you also add "meta", it will
+  not update the iPod, but instead will only copy track playcounts, ratings,
+  etc from the iPod to the local database.
+
+[ipod] add <files/dirs ...> [podcast]
+
+  Add tracks to the database. This will scan the files and dirs (recursively) 
+  and add entries for them in the database. Existing entries will be 
+  ignored. If you add the "podcast" flag, the file will be added as a podcast 
+  and placed into the podcasts playlist (if it exists).
+
+  Prefixing the command with "ipod" will cause the track to be added
+  into the iPod instead of the PC databast, *and* copy the file to the
+  iPod as well.
+
+  Use the "-r" option to assign tracks a rating.
+
+[ipod] del <notdb|patterns ...>
+
+  Delete tracks from the database.
+
+  If the "ipod" prefix is specified, you can supply a pattern or "notdb" 
+  as an arg. For "notdb", tracks that aren't also in the local db will 
+  be deleted, otherwise tracks will be regex matched to any of title,
+  artist or album.
+
+  If "ipod" is not specified, then tracks will be deleted based on either
+  the same pattern above, or alternatively you can specify local directories
+  or filenames for which the corresponding tracks will be removed. Note
+  that files are only unlinked if "ipod" is specified or if the "--del-files"
+  option is supplied.
+
+[ipod] list <patterns|files ...>
+
+  List tracks which match <patterns ...>
+
+  <pattern|files> is specified as for "del" above. Only patterns are
+  recognised with the "ipod" flag, but otherwise you may specify local
+  files or directories, and info for matching tracks will be displayed.
+
+[ipod] playlist create <name> [podcast]
+
+  Create a playlist (NOT smart) of name <name>. If "podcast" is
+  specified, set this playlist to be the Podcast playlist.
+
+[ipod] playlist list [name]
+
+  List all playlists. With a [name] specified, all the tracks in that
+  playlist are displayed.
+
+[ipod] playlist rules <name>
+
+  Show the smart playlist rules for the named playlist
+
+[ipod] playlist add <name> <tracks ...>
+
+  Adds <tracks> to the playlist <name>.
+
+  The tracks are regex matched by any of the title, artist or album for
+  tracks in the main database.
+
+[ipod] playlist del <name>
+
+  Deletes the playlist called <name>.
+
+  If the "--del-files" option is also supplied to podtool, the associated
+  tracks and files are also deleted. Otherwise the tracks remain in the
+  master playlist and the files are intact.
+
+[ipod] playlist remove <name> <tracks ...>
+
+  Removes <tracks> from the playlist called <name>
+
+  <tracks> are matched as one or more regexes to the title, artist or
+  album of the track.
+
+ipod dump
+
+  Dump iPod contents to the local PC.
+
+  MP3 files are dumped to a local directory and track metadata is merged
+  into the local database. See -h for default dump directory.
+
+[ipod] check
+
+  Check the local (or ipod) database for inconsistencies such as dangling
+  tracks, orphaned files, etc. Some errors are repaired, others are fixed
+  automatically.
+
+ipod makemap
+
+  Create a new mapping file. This file is used to crosslink tracks on the
+  iPod with local tracks.
+
+[ipod] eval
+
+  Evaluate smart playlists and saves them. Not normally used.
+
+diff
+
+  Show which tracks on the iPod have different playcounts, rating, etc from
+  the local database.
+
+ipod fixart
+
+  Fix artwork on iPod. Goes through all the tracks on the iPod and extracts
+  APIC id3 images and sets them as the track artwork. Normally not needed
+  as the "add" and "sync" commands add artwork automatically.
+
+update <files|dirs>
+
+  Updates the local database with changes in tracks specified. Metadata such
+  as bitrate, length and size are updated. This is useful if you have a new
+  version of a track (eg higher bitrate) and want to put the new version into
+  the db without clobbering playcount, rating, etc information.
+
+Hints and troubleshooting
+-------------------------
+
+- You should be able to fire up gtkpod and see the same tracks that you've
+  inserted with podtool. Don't worry about warnings concerning extended
+  track info.
+
+- If smart playlists appear empty on your ipod, run the 'playlist rules
+  <list>' command to verify they look correct. If necessary, also run
+  the command 'ipod eval' to re-evaluate playlists.
+
+- If you're getting lots of inconsistency warnings, run the 'ipod makemap'
+  command to rebuild the mapping file.
+
+- podtool will only insert mp3s that have got id3 track title tags.
+
+- It's wise to regularly backup your '~/.gtkpod/local_0.itdb' file once in
+  a while, especially during major operations.
+
+- For artwork to show in colour ipods, ensure your mp3s have thumbnails
+  in them. Do this with "eyeD3 --add-image=<files>:OTHER <mp3 ...>
+
+Licence
+-------
+This tool is released under the GNU general public licence, version 2.
+
+Etc...
+------
+I wrote this tool to scratch an itch, so it does what I need it to do. Please
+contribute patches, etc and I'll include those in a future release. Perhaps
+one day this will become a full blown application (console based iTunes?).
+
+Updates available at: http://www.cactii.net/~bb/
+Email: bb@bb.cactii.net
+
+18 May 2006
+
