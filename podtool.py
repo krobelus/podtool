@@ -137,7 +137,8 @@ def showFile(t):
   if t.time_added == 0:
     date = "Never"
   else:
-    date = time.strftime("%d %b", time.gmtime(t.time_added-2082844800))
+    #date = time.strftime("%d %b", time.gmtime(t.time_added-2082844800)) #broken
+    date = "Never"
   remarks = ""
   print " %-23.23s     %-17.17s   %-20.20s  %-5s     %-8s     %-3d    %-4d  %-3d" % (t.title , t.artist, t.album, stars(t), date, t.playcount, t.id, t.bitrate)
 
@@ -840,7 +841,7 @@ def Command_Add (arg):
     # br = audioFile.bit_rate_str() #broken
     # br[0] is true if vbr
     track.bitrate = 128
-    #track.tracklen = audioFile.getPlayTime() * 1000
+    #track.tracklen = audioFile.getPlayTime() * 1000 #broken
     track.tracklen = 300000
     track.album = str(tag.album)
     track.artist = str(tag.artist)
@@ -939,9 +940,10 @@ def Command_Update (arg):
       Msg("WARN: No ID3 tags for %s, skipping" % file, 1)
       continue
     track.size = fileSize(file)
-    # broken
+    # br = audioFile.bit_rate_str() #broken
+    # br[0] is true if vbr
     track.bitrate = 128
-    #track.tracklen = audioFile.getPlayTime() * 1000
+    #track.tracklen = audioFile.getPlayTime() * 1000 #broken
     track.tracklen = 300000
     print " %-30.30s %-25.25s %5d %d" % (track.title, track.artist, track.size/1024, track.bitrate)
   writeItdb("db")
