@@ -1832,7 +1832,7 @@ def Command_Sync (arg):
   if not dryRun:
     Msg( "DEBUG: Backing up iPod itdb...", 2)
     shutil.copyfile(ipodDbname, os.path.join(dotitdb, "iTunesDB.ipod"))
-  if not dryRun:
+  if not dryRun and tmpDir:
     Msg( "DEBUG: Clearing temporary files...", 2)
     for file in os.listdir(tmpDir):
       fl = os.path.join(tmpDir, file)
@@ -1845,7 +1845,6 @@ def Command_Sync (arg):
   gpod.itdb_track_id_tree_destroy(trackTree)
   Msg( "Done!", 1)
   sys.exit(0)
-
 
 
 def showhelp():
