@@ -22,8 +22,7 @@ import imghdr
 import shutil
 import time
 import stat
-import md5
-import sha
+import hashlib
 import struct
 
 mountpoint = "/mnt/ipod" # Ipod mount point
@@ -84,7 +83,7 @@ def thumbfile(file):
     except:
       continue
     f = open(os.path.join(imgFile), "rb")
-    m = md5.new()
+    m = hashlib.md5()
     while True:
       d = f.read(8096)
       if not d: break
@@ -240,7 +239,7 @@ def writeMap():
 def fileHash(filename):
   if not os.path.isfile(filename):
     return ""
-  sha1 = sha.sha()
+  sha1 = hashlib.sha1()
   size = os.path.getsize(filename)
   sha1.update(struct.pack("<L", size))
   sha1.update(open(filename).read(16384))
