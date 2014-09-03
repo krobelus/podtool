@@ -176,6 +176,9 @@ def readMap():
     return None
   for line in mf.readlines():
     line = line.strip()
+    line_split = line.split(";")
+    if len(line_split) != 2:
+        continue
     (localFile,ipodFile) = line.split(";")
     if not localFile or not ipodFile:
       continue
